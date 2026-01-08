@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Register - SecureChat{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header text-center py-3">
+                <h4 class="mb-0">
+                    <i class="bi bi-person-plus me-2"></i>Create Account
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-key-fill me-2"></i>
+                    <strong>End-to-End Encryption:</strong> 
+                    Upon registration, encryption keys will be generated for your account. 
+                    Your private key is encrypted with your password and only you can access it.
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Please correct the errors below.
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        {{ form.password1 }}
+                        <small class="text-muted">
+                            Minimum 12 characters. Use a strong, unique password.
+                        </small>
+                        {% if form.password1.errors %}
+                        <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Confirm Password</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                        <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="bi bi-shield-check me-2"></i>Create Secure Account
+                    </button>
+                </form>
+                
+                <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+                
+                <p class="text-center text-muted mb-0">
+                    Already have an account? 
+                    <a href="{% url 'accounts:login' %}" class="text-primary">Login</a>
+                </p>
+            </div>
+            <div class="card-footer text-center py-3">
+                <small class="text-muted">
+                    <i class="bi bi-shield-fill-check me-1"></i>
+                    Your password never leaves your device unencrypted
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

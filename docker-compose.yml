@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: secure_chat_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: secure_chat
+      POSTGRES_USER: chat_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_database_password_2024}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chat_user -d secure_chat"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - chat_network
+
+  # Redis for WebSocket channels
+  redis:
+    image: redis:7-alpine
+    container_name: secure_chat_redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-secure_redis_password_2024}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - chat_network
+
+  # Django Application
+  web:
+    build: .
+    container_name: secure_chat_web
+    volumes:
+      - static_files:/app/staticfiles
+      - media_files:/app/media
+    environment:
+      - DEBUG=False
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-your-super-secret-key-change-this-in-production-2024}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-key-change-this-2024}
+      - ROOM_KEY_PASSWORD=${ROOM_KEY_PASSWORD:-room-encryption-master-key-2024}
+      - DB_NAME=secure_chat
+      - DB_USER=chat_user
+      - DB_PASSWORD=${DB_PASSWORD:-secure_database_password_2024}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - ALLOWED_HOSTS=localhost,127.0.0.1,${DOMAIN:-localhost}
+      - CORS_ORIGINS=http://localhost:8000,http://127.0.0.1:8000,https://${DOMAIN:-localhost}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - chat_network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: secure_chat_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_files:/app/staticfiles:ro
+      - media_files:/app/media:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - web
+    restart: unless-stopped
+    networks:
+      - chat_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_files:
+  media_files:
+
+networks:
+  chat_network:
+    driver: bridge

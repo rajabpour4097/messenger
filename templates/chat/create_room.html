@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Create Room - SecureChat{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Create New Room</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-shield-lock me-2"></i>
+                    <strong>Secure by Default:</strong>
+                    A unique encryption key will be generated for this room.
+                    All messages will be end-to-end encrypted.
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Room Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        {{ form.description }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Room Type</label>
+                        {{ form.room_type }}
+                        <small class="text-muted d-block mt-1">
+                            <strong>Public:</strong> Anyone can join<br>
+                            <strong>Private:</strong> Invite only
+                        </small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Maximum Members</label>
+                        {{ form.max_members }}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-shield-plus me-2"></i>Create Encrypted Room
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

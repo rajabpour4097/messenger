@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Profile - SecureChat{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-person-circle" style="font-size: 5rem; color: var(--primary-color);"></i>
+                </div>
+                <h4>{{ user.username }}</h4>
+                <p class="text-muted">{{ user.email }}</p>
+                <span class="encryption-badge">
+                    <i class="bi bi-key-fill"></i>Keys Active
+                </span>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-shield-lock me-2"></i>Security Info
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Key Version</small>
+                    <p class="mb-0">v{{ user.key_version }}</p>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Keys Generated</small>
+                    <p class="mb-0">{{ user.keys_generated_at|date:"Y-m-d H:i" }}</p>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Public Key (truncated)</small>
+                    <p class="mb-0 font-monospace small">{{ user.public_key|truncatechars:20 }}...</p>
+                </div>
+                <div>
+                    <small class="text-muted">2FA Status</small>
+                    <p class="mb-0">
+                        {% if user.two_factor_enabled %}
+                        <span class="text-success"><i class="bi bi-check-circle me-1"></i>Enabled</span>
+                        {% else %}
+                        <span class="text-warning"><i class="bi bi-exclamation-circle me-1"></i>Disabled</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>Active Sessions
+            </div>
+            <div class="card-body">
+                {% if active_sessions %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>IP Address</th>
+                                <th>Last Activity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in active_sessions %}
+                            <tr>
+                                <td>{{ session.ip_address }}</td>
+                                <td>{{ session.last_activity|timesince }} ago</td>
+                                <td>
+                                    <form method="post" action="{% url 'accounts:terminate_session' session.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No active sessions found.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-journal-text me-2"></i>Security Audit Log
+            </div>
+            <div class="card-body">
+                {% if recent_logs %}
+                <div class="list-group list-group-flush">
+                    {% for log in recent_logs %}
+                    <div class="list-group-item bg-transparent border-bottom" style="border-color: rgba(255,255,255,0.1) !important;">
+                        <div class="d-flex justify-content-between">
+                            <span>
+                                {% if log.event_type == 'login' %}
+                                <i class="bi bi-box-arrow-in-right text-success me-2"></i>
+                                {% elif log.event_type == 'logout' %}
+                                <i class="bi bi-box-arrow-right text-info me-2"></i>
+                                {% elif log.event_type == 'failed_login' %}
+                                <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+                                {% else %}
+                                <i class="bi bi-info-circle text-muted me-2"></i>
+                                {% endif %}
+                                {{ log.get_event_type_display }}
+                            </span>
+                            <small class="text-muted">{{ log.timestamp|timesince }} ago</small>
+                        </div>
+                        <small class="text-muted">IP: {{ log.ip_address }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No audit logs found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
